@@ -1,0 +1,11 @@
+# Supabase CLI runtime state and local secrets.
+supabase/.temp/
+supabase/.branches/
+.env
+.env.*
+!.env.example
+
+# Application dependencies and build output.
+node_modules/
+.next/
+dist/

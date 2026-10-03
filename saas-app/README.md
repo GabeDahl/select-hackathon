@@ -18,13 +18,14 @@ supabase test db --local
 supabase db advisors --local --type security --level warn --fail-on warn
 ```
 
-To initialize the demo data on a running local stack without resetting it:
+To rebuild the local database and populate the demo data, run from `saas-app`:
 
 ```sh
-supabase db query --local --file supabase/seed.sql
+supabase db reset --local
 ```
 
-The seed uses idempotent inserts and never overwrites existing fixture rows.
+`config.toml` enables seeding and points to `./seed.sql`. Reset reapplies all
+migrations and then runs this seed. The seed uses idempotent inserts.
 Do not load the demo seed into production. Demo credentials are in `docs/domain.md`.
 
 The authorization test uses its own transaction and loads these fixtures within

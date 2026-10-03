@@ -29,6 +29,9 @@ drawing relationships alone does not deliver the intended product value.
   relevant views or other access paths; connect the result to business meaning.
 - Make the explanation inspectable through a visualization usable by both
   technical and non-technical people. SQL details should be available as evidence.
+- Support two perspectives on the same authorization model: a resource view
+  answering "who can read/write me?" and a user view answering "what can I
+  read/write?" Both perspectives must share access rules, evidence, and stable IDs.
 - Let an agent drive navigation in response to natural-language questions:
   focus entities, follow relationships, highlight access paths, inspect rules,
   and compare scenarios. Analysis and visual elements need shared stable IDs.
@@ -41,7 +44,7 @@ The discussed representation has three connected layers: database facts with
 original SQL; domain meaning mapped to those facts; and intended authorization
 rules with evidence and a confirmation/uncertainty status. Maintain the full
 representation while supplying relevant slices to a model for a given question.
-Its exact format and the application's framework are still open decisions.
+Its exact format remains an open decision. The application uses Next.js.
 
 A possible later integration would turn a requested rule change into a structured
 handoff for a coding agent: desired rule, affected objects, evidence, acceptance
@@ -59,11 +62,35 @@ aside during exploration.
 - `authzcope/`: the actual authorization analysis and visualization product.
 - `saas-app/`: a separate generic SaaS example that Authzcope will analyze. Its
   purpose is to provide realistic domain logic and interacting access rules.
-- `.agents/skills/`: installed Supabase and Postgres guidance. Use the applicable
-  skills for Supabase work and before database/schema changes.
+- `.agents/skills/`: installed Supabase, Postgres, Next.js, React, and shadcn
+  guidance. Use the applicable skills for implementation work.
 
 Keep the product and example application distinct when choosing where work goes.
 Work on the example should help demonstrate Authzcope's explanations.
+
+## Authzcope bootstrap requirements
+
+- Accept a Postgres connection string and AI API key. Local development/demo
+  credentials may come from server environment variables; prompt for missing
+  values and keep user-entered credentials in application memory, without persistence.
+- Use server-side database introspection and AI requests. Keep injected secrets
+  server-side and report only whether configuration is present to the browser.
+- Start by inspecting the example SaaS database. Maintain an explicit omission
+  list for infrastructure objects outside the selected application scope, while
+  retaining references to external authorization dependencies as evidence.
+- Plan for a hosted demo on a domain connected to a remote Supabase Postgres
+  database. Use Next.js App Router, TypeScript, Tailwind CSS v4, and pnpm.
+- Defer visualization implementation and dependencies. React Flow is not the
+  selected approach; visualization technology remains open. Initial work should
+  focus on credential setup, introspection, application scope filtering, and AI
+  analysis, using a representation independent of any rendering library.
+- Establish Authzcope's own design/style system from scratch, using selected
+  shadcn/ui components as editable starting points and customizing them centrally
+  for consistent application UI. Colors, typography, and visual direction remain
+  undecided; the previously proposed light/blue treatment is not an accepted choice.
+- The scaffold uses shadcn's Base UI / Nova components with neutral tokens and
+  Geist fonts as provisional defaults. Shared tokens live in
+  `authzcope/app/globals.css`; editable primitives live in `components/ui/`.
 
 ## Example SaaS design
 
