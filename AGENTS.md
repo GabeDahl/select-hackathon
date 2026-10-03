@@ -21,12 +21,21 @@ The core bet is that better models will understand application semantics more
 deeply. Preserve a design that benefits from that improvement. Parsing SQL and
 drawing relationships alone does not deliver the intended product value.
 
+Authzcope must support varied application domains and arbitrary authorization
+models. The workspace-and-documents SaaS example is a demonstration fixture, not
+the template for ingestion or inference. Do not assume tenant boundaries,
+membership tables, user ID columns, or a fixed vocabulary of roles and actions.
+
 ## Product direction
 
 - Infer actors, resources, relationships, workflow states, and intended rules from
   evidence. Roles may depend on a user's relationship to a particular resource.
 - Explain effective access through policies, helper functions, grants, and
   relevant views or other access paths; connect the result to business meaning.
+- Feed introspected SQL and supporting evidence to an AI model to translate
+  implemented authorization into human-understandable domain relationships and
+  actions that drive the visualization. Preserve source evidence rather than
+  constraining interpretation to a predefined set of SQL patterns.
 - Make the explanation inspectable through a visualization usable by both
   technical and non-technical people. SQL details should be available as evidence.
 - Support two perspectives on the same authorization model: a resource view
@@ -45,6 +54,9 @@ original SQL; domain meaning mapped to those facts; and intended authorization
 rules with evidence and a confirmation/uncertainty status. Maintain the full
 representation while supplying relevant slices to a model for a given question.
 Its exact format remains an open decision. The application uses Next.js.
+The AI's structured domain/visualization output is deliberately undecided;
+introspection and model-input preparation must preserve evidence without
+requiring that output format to be chosen first.
 
 A possible later integration would turn a requested rule change into a structured
 handoff for a coding agent: desired rule, affected objects, evidence, acceptance
@@ -68,6 +80,20 @@ aside during exploration.
 Keep the product and example application distinct when choosing where work goes.
 Work on the example should help demonstrate Authzcope's explanations.
 
+Reuse the user's existing development servers. Do not start, restart, replace,
+or kill a dev server unless the user explicitly requests that action. Multiple
+chats may be using the same server concurrently.
+
+## Shared development servers
+
+- Before starting Next.js, check existing processes, working directories, and
+  listening ports for that application. Reuse an existing server across chats
+  and agents. Do not start another server, including on a different port, while
+  one for the application is already running.
+- Diagnose a stale or unhealthy server before replacing it; do not launch a
+  second server alongside it. Keep build checks from overwriting output used by
+  a running production preview server.
+
 ## Authzcope bootstrap requirements
 
 - Accept a Postgres connection string and AI API key. Local development/demo
@@ -81,16 +107,17 @@ Work on the example should help demonstrate Authzcope's explanations.
 - Plan for a hosted demo on a domain connected to a remote Supabase Postgres
   database. Use Next.js App Router, TypeScript, Tailwind CSS v4, and pnpm.
 - Defer visualization implementation and dependencies. React Flow is not the
-  selected approach; visualization technology remains open. Initial work should
+  selected approach; visualization technology remains open, including a possible
+  3D visualization. Initial work should
   focus on credential setup, introspection, application scope filtering, and AI
   analysis, using a representation independent of any rendering library.
-- Establish Authzcope's own design/style system from scratch, using selected
-  shadcn/ui components as editable starting points and customizing them centrally
-  for consistent application UI. Colors, typography, and visual direction remain
-  undecided; the previously proposed light/blue treatment is not an accepted choice.
-- The scaffold uses shadcn's Base UI / Nova components with neutral tokens and
-  Geist fonts as provisional defaults. Shared tokens live in
-  `authzcope/app/globals.css`; editable primitives live in `components/ui/`.
+- Use shadcn's Base UI / Nova primitives, installing missing components as needed;
+  do not build a separate design system from scratch. The accepted shell direction
+  pairs a warm ivory header, navigation rail, and selection inspector with a
+  graphite visualization canvas and restrained coral/sage accents. Keep Geist
+  fonts. Shared theme tokens live in `authzcope/app/globals.css`; editable
+  primitives live in `components/ui/`. Selection and 3D navigation may remain
+  placeholders until the visualizer is implemented.
 
 ## Example SaaS design
 
