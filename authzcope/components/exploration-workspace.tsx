@@ -1,120 +1,158 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import {
-  ArrowUpIcon,
-  BoxIcon,
-  FileTextIcon,
+  ArrowLeftIcon,
   FocusIcon,
   HandIcon,
-  LayersIcon,
   MinusIcon,
-  MousePointer2Icon,
   PlusIcon,
-  SparklesIcon,
 } from "lucide-react";
 
 import { SelectionInspector, type ExplorerSelection } from "@/components/selection-inspector";
-import { Badge } from "@/components/ui/badge";
+import { ExplorerEmptyState } from "@/components/explorer-empty-state";
+import { useExplorerStore } from "@/components/explorer-navigation-provider";
+import { useAnalysisStore } from "@/components/analysis-provider";
+import { ExplorerQuestionInput, ExplorerChatAnswer } from "@/components/explorer-chat";
+import { ExplorerModelDetails } from "@/components/explorer-model-details";
+import type { NavigationCommand } from "@/lib/explorer-navigation-types";
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import { ExplorerControls, emptyExplorerControls, type ExplorerControl } from "@/components/explorer-controls";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const previewSelection: ExplorerSelection = {
-  id: "preview:launch-brief",
-  label: "Launch brief",
-  kind: "document",
-  state: "Draft",
-  location: "Product launch / Acme",
-};
+const ExplorerScene = dynamic(() => import("@/components/explorer-scene"), {
+  ssr: false,
+  loading: () => <Skeleton className="absolute inset-0 rounded-none" />,
+});
 
-export function ExplorationWorkspace() {
-  // Replace this placeholder with selection events from the future visualizer.
-  const [selection, setSelection] = useState<ExplorerSelection | null>(previewSelection);
-  const [perspective, setPerspective] = useState("resource");
+export function ExplorationWorkspace({ controls = emptyExplorerControls }: {
+  controls?: readonly ExplorerControl[];
+}) {
+  const navigation = useExplorerStore((state) => state.navigation);
+  const registry = useExplorerStore((state) => state.registry);
+  const navigate = useExplorerStore((state) => state.navigate);
+  const pending = useExplorerStore((state) => state.pending);
+  const reply = useExplorerStore((state) => state.reply);
+  const error = useExplorerStore((state) => state.error);
+  const clearConversation = useExplorerStore((state) => state.clearConversation);
+  const model = useAnalysisStore((state) => state.model);
+  const { view } = navigation;
+  const target = navigation.inspected ?? navigation.focus;
+  const entry = registry.entries.find((entry) => entry.target.id === target?.id && entry.target.kind === target?.kind);
+  const selection: ExplorerSelection | null = entry ? {
+    id: entry.target.id, label: entry.label, kind: entry.target.kind, state: "", location: "",
+  } : null;
+  const inspectorOpen = !!selection || pending || !!reply || !!error;
+  const command = (commands: NavigationCommand[]) => navigate({ revision: registry.revision, commands });
+  const pattern = registry.patterns.find((pattern) => pattern.id === navigation.patternId);
+  const compare = () => { if (pattern?.scenarioIds.length) command([{ type: "compare", patternId: pattern.id, scenarioIds: pattern.scenarioIds.slice(0, 4) }]); };
+  const defaultControls = controls === emptyExplorerControls;
+  const availableControls: readonly ExplorerControl[] = defaultControls ? [
+    { id: "access-pattern", label: "Access action", kind: "navigation", placeholder: "Select action", options: registry.patterns.map((pattern) => ({ id: pattern.id,
+      label: registry.entries.find((entry) => entry.target.kind === "pattern" && entry.target.id === pattern.id)?.label ?? pattern.id })) },
+    { id: "scenario", label: "Scenario", kind: "scenario", placeholder: navigation.scenarioIds.length > 1 ? "Comparing scenarios" : "Select scenario",
+      options: (pattern?.scenarioIds ?? []).map((id) => ({ id, label: registry.entries.find((entry) => entry.target.kind === "scenario" && entry.target.id === id)?.label ?? id })) },
+  ] : controls;
+  const [controlValues, setControlValues] = useState<Record<string, string | null>>({});
   const selectionButtonRef = useRef<HTMLButtonElement>(null);
+
+  if (!model) return <ExplorerEmptyState />;
 
   return (
     <div className="flex h-full min-h-0 min-w-0">
-      <section className="dark model-space relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-background text-foreground" aria-label="Authorization model explorer">
-        <div className="model-space-grid" aria-hidden="true" />
-        <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-4 p-6 sm:p-8 lg:p-9">
-          <div>
-            <p className="mb-2 text-[0.625rem] font-medium tracking-[0.18em] text-muted-foreground uppercase">Authorization explorer</p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Explore access</h1>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">Follow relationships. Understand permissions.</p>
-            <ToggleGroup
-              className="mt-6 rounded-lg border border-border p-1"
-              variant="perspective"
-              value={[perspective]}
-              onValueChange={(value) => { if (value[0]) setPerspective(value[0]); }}
-              aria-label="Model perspective"
-              spacing={0}
-            >
-              <ToggleGroupItem value="resource">Resource view</ToggleGroupItem>
-              <ToggleGroupItem value="user">User view</ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-          <Badge variant="outline"><LayersIcon data-icon="inline-start" aria-hidden="true" /> Shell preview</Badge>
-        </header>
-
-        <div className="relative mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 py-8">
-          <Empty className="flex-none p-0">
-            <EmptyHeader>
-              <EmptyMedia><div className="mb-3 flex size-20 items-center justify-center rounded-2xl border border-border bg-muted/30 text-highlight"><BoxIcon className="size-9" strokeWidth={1} aria-hidden="true" /></div></EmptyMedia>
-              <EmptyTitle>{perspective === "resource" ? "Who can access this resource?" : "What can this person access?"}</EmptyTitle>
-              <EmptyDescription>The 3D model will live here. Select an item to follow its relationships, understand access, and inspect the evidence.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-          <Button
-            ref={selectionButtonRef}
-            variant="selection"
-            size="lg"
-            className="mt-7 h-12 gap-3 px-5"
-            onClick={() => setSelection(previewSelection)}
-            aria-expanded={selection !== null}
-            aria-label="Inspect Launch brief, example document"
-          >
-            <FileTextIcon data-icon="inline-start" aria-hidden="true" />
-            Launch brief
-            <Badge variant="warm">Draft</Badge>
-            <MousePointer2Icon data-icon="inline-end" aria-hidden="true" />
-          </Button>
-          <p className="mt-4 text-center text-[0.625rem] text-muted-foreground">Example selection · interactive space coming next</p>
+      <section className={`dark model-space relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background text-foreground ${inspectorOpen ? "sm:max-lg:mr-[min(78vw,25rem)]" : ""}`} aria-label="Authorization model explorer">
+        <div className="absolute inset-0" data-slot="explorer-scene">
+          <ExplorerScene navigation={navigation} model={model} onInspect={(target) => command([{ type: "focus", target }])} />
         </div>
-
-        <div className="relative flex shrink-0 flex-col gap-7 px-5 pb-5 pt-6 sm:px-8 sm:pb-7">
-          <div className="mx-auto w-full max-w-xl">
-            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground"><SparklesIcon className="size-3" aria-hidden="true" /><span>Navigate with a question</span><span className="ml-auto text-[0.625rem]">Coming soon</span></div>
-            <InputGroup className="h-13 px-2">
-              <InputGroupInput aria-label="Ask about access" placeholder="Why can Maya read this draft?" disabled />
-              <InputGroupAddon><SparklesIcon aria-hidden="true" /></InputGroupAddon>
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton size="icon-sm" variant="secondary" disabled aria-label="Submit access question">
-                  <ArrowUpIcon aria-hidden="true" />
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          </div>
-          <footer className="flex flex-wrap items-center justify-between gap-4">
-            <p className="flex items-center gap-2 text-[0.625rem] text-muted-foreground"><span className="size-1.5 rounded-full bg-highlight" aria-hidden="true" /> Visualization placeholder</p>
-            <div className="flex items-center gap-0.5 rounded-lg border border-border p-1" aria-label="Future visualization controls">
-              <Button variant="ghost" size="icon" aria-label="Orbit model" disabled><FocusIcon aria-hidden="true" /></Button>
-              <Button variant="ghost" size="icon" aria-label="Pan model" disabled><HandIcon aria-hidden="true" /></Button>
-              <Separator orientation="vertical" className="mx-1 h-4" />
-              <Button variant="ghost" size="icon" aria-label="Zoom in" disabled><PlusIcon aria-hidden="true" /></Button>
-              <Button variant="ghost" size="icon" aria-label="Zoom out" disabled><MinusIcon aria-hidden="true" /></Button>
-              <Button variant="ghost" disabled>Fit view</Button>
+        <div className="pointer-events-none relative flex min-h-0 flex-1 flex-col overflow-y-auto [&_button]:pointer-events-auto [&_input]:pointer-events-auto">
+          <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-4 p-6 sm:px-8 lg:px-9">
+            <div className="flex flex-col items-start gap-3">
+              <h1 className="sr-only">Explore</h1>
+              <Button
+                ref={selectionButtonRef}
+                variant="outline"
+                size="sm"
+                onClick={() => command([{ type: "overview" }])}
+              >
+                <ArrowLeftIcon data-icon="inline-start" aria-hidden="true" />
+                {view === "overview" ? "Overview" : "Back to overview"}
+              </Button>
+              <ToggleGroup
+                className="rounded-lg border border-border p-1"
+                variant="perspective"
+                value={[navigation.perspective]}
+                onValueChange={(value) => {
+                  if (value[0] === "user" || value[0] === "resource") command([{ type: "perspective", perspective: value[0] }]);
+                }}
+                aria-label="Model perspective"
+                spacing={0}
+              >
+                <ToggleGroupItem value="resource">Resource view</ToggleGroupItem>
+                <ToggleGroupItem value="user">User view</ToggleGroupItem>
+              </ToggleGroup>
+              {view !== "overview" ? (
+                <ToggleGroup className="rounded-lg border border-border p-1" variant="perspective"
+                  value={[view]} onValueChange={(value) => {
+                    if (value[0] === "focus" && navigation.focus) command([{ type: "focus", target: navigation.focus }]);
+                    if (value[0] === "compare") compare();
+                  }} aria-label="Resource exploration" spacing={0}>
+                  <ToggleGroupItem value="focus">Access paths</ToggleGroupItem>
+                  <ToggleGroupItem value="compare" disabled={!pattern?.scenarioIds.length}>Compare scenarios</ToggleGroupItem>
+                </ToggleGroup>
+              ) : null}
             </div>
-          </footer>
+            <div className="pointer-events-auto flex w-full min-w-0 max-w-96 flex-col items-start gap-4">
+              <ExplorerControls
+                controls={availableControls}
+                values={defaultControls ? { "access-pattern": navigation.patternId, scenario: navigation.scenarioIds.length === 1 ? navigation.scenarioIds[0] : null } : controlValues}
+                onValueChange={(id, value) => {
+                  if (!defaultControls) { setControlValues((current) => ({ ...current, [id]: value })); return; }
+                  if (id === "access-pattern" && value) command([{ type: "focus", target: { kind: "pattern", id: value } }]);
+                  if (id === "scenario" && value && pattern) command([{ type: "compare", patternId: pattern.id, scenarioIds: [value] }]);
+                }}
+              />
+            </div>
+          </header>
+
+          <div className="min-h-20 flex-1" />
+
+          <div className="relative flex shrink-0 flex-col gap-5 px-5 pb-5 pt-4 sm:px-8">
+            <div className="mx-auto w-full max-w-xl">
+              <ExplorerQuestionInput />
+            </div>
+            <footer className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Symbolic authorization model · no live access check
+                </p>
+              </div>
+              <div className="flex items-center gap-0.5 rounded-lg border border-border p-1" aria-label="Future visualization controls">
+                <Button variant="ghost" size="icon" aria-label="Orbit model" disabled><FocusIcon aria-hidden="true" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Pan model" disabled><HandIcon aria-hidden="true" /></Button>
+                <Separator orientation="vertical" className="mx-1 h-4" />
+                <Button variant="ghost" size="icon" aria-label="Zoom in" disabled><PlusIcon aria-hidden="true" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Zoom out" disabled><MinusIcon aria-hidden="true" /></Button>
+                <Button variant="ghost" disabled>Fit view</Button>
+              </div>
+            </footer>
+          </div>
         </div>
       </section>
       <SelectionInspector
         selection={selection}
+        open={inspectorOpen}
+        chat={<ExplorerChatAnswer />}
+        details={<ExplorerModelDetails />}
+        onOverview={() => {
+          command([{ type: "overview" }]);
+          selectionButtonRef.current?.focus();
+        }}
         onClose={() => {
-          setSelection(null);
+          command([{ type: "overview" }]);
+          clearConversation();
           selectionButtonRef.current?.focus();
         }}
         returnFocusRef={selectionButtonRef}

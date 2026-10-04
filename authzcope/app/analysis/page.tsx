@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import { ScanSearchIcon } from "lucide-react";
 
-import { ScaffoldPage } from "@/components/scaffold-page";
+import { PageHeader } from "@/components/page-header";
+import { AnalysisWorkspace } from "@/components/analysis-workspace";
 
 export const metadata: Metadata = { title: "Analysis" };
+export const maxDuration = 180;
 
 export default function AnalysisPage() {
   return (
-    <ScaffoldPage
-      title="Analysis"
-      description="Understand who can do what, why access exists, and where behavior may differ from intent."
-      icon={ScanSearchIcon}
-      emptyTitle="No analysis yet"
-      emptyDescription="Access explanations and their supporting evidence will appear here once schema inspection, domain context, and AI analysis are connected."
-      nextHref="/context"
-      nextLabel="Explore domain context"
-    />
+    <section className="flex min-w-0 flex-col gap-8">
+      <PageHeader title="Analysis" />
+      <AnalysisWorkspace />
+    </section>
   );
 }

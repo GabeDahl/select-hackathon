@@ -1,0 +1,2422 @@
+{
+  "schemaVersion": "authzcope.authorization-model.v1-draft",
+  "modelId": "model:saas-symbolic-example",
+  "snapshotRevision": "example-not-a-live-snapshot",
+  "contextRevision": "example-repository-evidence-v1",
+  "materialization": "symbolic",
+  "coverage": {
+    "analyzedObjectIds": [],
+    "externalDependencyIds": [],
+    "exclusions": [],
+    "missingInputs": [
+      "Live application rows and actor identity",
+      "API exposure and real request context",
+      "Full SQL execution-path review"
+    ],
+    "limits": [
+      "This is a hand-authored design fixture using repository evidence, not generated output from a live snapshot.",
+      "Only document read/edit patterns are modeled. Create, delete and share actions have no inferred permissions here.",
+      "Client SQL privileges, SELECT eligibility, permitted update columns and resulting-row checks are assumed satisfied within the symbolic scenarios."
+    ]
+  },
+  "claims": [
+    {
+      "id": "claim:domain",
+      "statement": "The application has users, organizations, projects, documents, memberships and document shares.",
+      "basis": "intended",
+      "support": "direct",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/docs/domain.md",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:structure",
+      "statement": "Projects belong to organizations and documents belong to projects; membership and share records connect users to their scopes.",
+      "basis": "implemented",
+      "support": "direct",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/tables/organizations.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/tables/organization_memberships.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/tables/projects.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/tables/project_memberships.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/tables/documents.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/tables/document_shares.sql",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:read",
+      "statement": "Reading requires authentication and live organization membership, then an administrative/editor path, a direct share, or published/archived content in a readable project.",
+      "basis": "implemented",
+      "support": "direct",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_read_document.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_manage_project.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_read_project.sql",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:edit",
+      "statement": "Editing requires authentication, live organization membership, a non-archived old document and an admin, project-editor or editor-share path.",
+      "basis": "implemented",
+      "support": "direct",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_edit_document.sql",
+          "pointer": "/text"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_manage_project.sql",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:intent-edit",
+      "statement": "A direct editor share permits a live organization member to edit non-archived documents, but cannot override archived state.",
+      "basis": "intended",
+      "support": "direct",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/docs/access-model.md",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:update-mechanics",
+      "statement": "Document updates are column-restricted and require editable old rows and readable resulting rows.",
+      "basis": "implemented",
+      "support": "direct",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/policies/documents.sql",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:scenario-boundary",
+      "statement": "Symbolic scenarios hold the client execution path, SQL privilege checks, SELECT eligibility, permitted columns and resulting-row validation satisfied. They are not live permissions for a named person.",
+      "basis": "assumption",
+      "support": "inferred",
+      "evidenceRefs": []
+    },
+    {
+      "id": "claim:navigation",
+      "statement": "Organization, project, role, share and document lifecycle concepts can provide navigation lenses.",
+      "basis": "intended",
+      "support": "inferred",
+      "evidenceRefs": [
+        {
+          "sourceId": "repo:saas-app/docs/domain.md",
+          "pointer": "/text"
+        }
+      ]
+    },
+    {
+      "id": "claim:missing-live-context",
+      "statement": "The metadata snapshot does not supply users, membership rows, share rows, request context or independent intended behavior.",
+      "basis": "assumption",
+      "support": "unresolved",
+      "evidenceRefs": []
+    }
+  ],
+  "entityTypes": [
+    {
+      "id": "entity:user",
+      "label": "User",
+      "pluralLabel": "Users",
+      "capabilities": [
+        "actor",
+        "resource"
+      ],
+      "sourceIds": [],
+      "attributes": [],
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "entity:organization",
+      "label": "Organization",
+      "pluralLabel": "Organizations",
+      "capabilities": [
+        "resource",
+        "context"
+      ],
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/organizations.sql"
+      ],
+      "attributes": [],
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "entity:project",
+      "label": "Project",
+      "pluralLabel": "Projects",
+      "capabilities": [
+        "resource",
+        "context"
+      ],
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/projects.sql"
+      ],
+      "attributes": [],
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "entity:document",
+      "label": "Document",
+      "pluralLabel": "Documents",
+      "capabilities": [
+        "resource"
+      ],
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/documents.sql"
+      ],
+      "attributes": [
+        {
+          "id": "attribute:document-state",
+          "label": "Lifecycle state",
+          "key": "state",
+          "valueType": "string",
+          "sourceIds": [
+            "repo:saas-app/supabase/schemas/public/tables/documents.sql"
+          ],
+          "claimIds": [
+            "claim:structure"
+          ]
+        }
+      ],
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "entity:organization-membership",
+      "label": "Organization membership",
+      "pluralLabel": "Organization memberships",
+      "capabilities": [
+        "resource",
+        "relationship_record"
+      ],
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/organization_memberships.sql"
+      ],
+      "attributes": [],
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "entity:project-membership",
+      "label": "Project membership",
+      "pluralLabel": "Project memberships",
+      "capabilities": [
+        "resource",
+        "relationship_record"
+      ],
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/project_memberships.sql"
+      ],
+      "attributes": [],
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "entity:document-share",
+      "label": "Document share",
+      "pluralLabel": "Document shares",
+      "capabilities": [
+        "resource",
+        "relationship_record"
+      ],
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/document_shares.sql"
+      ],
+      "attributes": [],
+      "claimIds": [
+        "claim:domain"
+      ]
+    }
+  ],
+  "relationshipTypes": [
+    {
+      "id": "relationship:organization-project",
+      "label": "Organization contains project",
+      "participants": [
+        {
+          "key": "organization",
+          "label": "Organization",
+          "entityTypeId": "entity:organization"
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "recordEntityTypeId": null,
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/projects.sql"
+      ],
+      "visualPurpose": "grouping",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "relationship:project-document",
+      "label": "Project contains document",
+      "participants": [
+        {
+          "key": "project",
+          "label": "Project",
+          "entityTypeId": "entity:project"
+        },
+        {
+          "key": "document",
+          "label": "Document",
+          "entityTypeId": "entity:document"
+        }
+      ],
+      "recordEntityTypeId": null,
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/documents.sql"
+      ],
+      "visualPurpose": "grouping",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "relationship:organization-member",
+      "label": "Organization membership",
+      "participants": [
+        {
+          "key": "member",
+          "label": "Member",
+          "entityTypeId": "entity:user"
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "entityTypeId": "entity:organization"
+        }
+      ],
+      "recordEntityTypeId": "entity:organization-membership",
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/organization_memberships.sql"
+      ],
+      "visualPurpose": "access",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "relationship:project-member",
+      "label": "Project membership",
+      "participants": [
+        {
+          "key": "member",
+          "label": "Member",
+          "entityTypeId": "entity:user"
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "recordEntityTypeId": "entity:project-membership",
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/project_memberships.sql"
+      ],
+      "visualPurpose": "access",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "relationship:document-share",
+      "label": "Document share",
+      "participants": [
+        {
+          "key": "recipient",
+          "label": "Recipient",
+          "entityTypeId": "entity:user"
+        },
+        {
+          "key": "document",
+          "label": "Document",
+          "entityTypeId": "entity:document"
+        },
+        {
+          "key": "grantor",
+          "label": "Grantor",
+          "entityTypeId": "entity:user"
+        }
+      ],
+      "recordEntityTypeId": "entity:document-share",
+      "sourceIds": [
+        "repo:saas-app/supabase/schemas/public/tables/document_shares.sql"
+      ],
+      "visualPurpose": "access",
+      "claimIds": [
+        "claim:structure"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "action:read-document",
+      "label": "Read document",
+      "crud": "read",
+      "targetEntityTypeId": "entity:document",
+      "targetLevel": "instance",
+      "createsEntityTypeId": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "action:edit-document",
+      "label": "Edit content or state",
+      "crud": "update",
+      "targetEntityTypeId": "entity:document",
+      "targetLevel": "instance",
+      "createsEntityTypeId": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "action:create-document",
+      "label": "Create document",
+      "crud": "create",
+      "targetEntityTypeId": "entity:project",
+      "targetLevel": "instance",
+      "createsEntityTypeId": "entity:document",
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "action:delete-document",
+      "label": "Delete document",
+      "crud": "delete",
+      "targetEntityTypeId": "entity:document",
+      "targetLevel": "instance",
+      "createsEntityTypeId": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "action:share-document",
+      "label": "Manage document shares",
+      "crud": null,
+      "targetEntityTypeId": "entity:document",
+      "targetLevel": "instance",
+      "createsEntityTypeId": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    }
+  ],
+  "selectors": [
+    {
+      "id": "selector:actor",
+      "label": "A user in the document context",
+      "entityTypeId": "entity:user",
+      "kind": "symbolic",
+      "contextBindings": [
+        {
+          "name": "organization",
+          "entityTypeId": "entity:organization"
+        },
+        {
+          "name": "project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "whereConditionId": null,
+      "instanceEvidenceRef": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "selector:document",
+      "label": "A document in a project",
+      "entityTypeId": "entity:document",
+      "kind": "symbolic",
+      "contextBindings": [
+        {
+          "name": "organization",
+          "entityTypeId": "entity:organization"
+        },
+        {
+          "name": "project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "whereConditionId": null,
+      "instanceEvidenceRef": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "selector:projects",
+      "label": "Projects",
+      "entityTypeId": "entity:project",
+      "kind": "type",
+      "contextBindings": [
+        {
+          "name": "organization",
+          "entityTypeId": "entity:organization"
+        }
+      ],
+      "whereConditionId": null,
+      "instanceEvidenceRef": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "selector:organizations",
+      "label": "Organizations",
+      "entityTypeId": "entity:organization",
+      "kind": "type",
+      "contextBindings": [],
+      "whereConditionId": null,
+      "instanceEvidenceRef": null,
+      "claimIds": [
+        "claim:domain"
+      ]
+    },
+    {
+      "id": "selector:project-viewer",
+      "label": "Project viewers",
+      "entityTypeId": "entity:user",
+      "kind": "symbolic",
+      "contextBindings": [
+        {
+          "name": "organization",
+          "entityTypeId": "entity:organization"
+        },
+        {
+          "name": "project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "whereConditionId": "condition:project-viewer",
+      "instanceEvidenceRef": null,
+      "claimIds": [
+        "claim:read"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "id": "variable:authenticated",
+      "label": "Authenticated request",
+      "bindingRef": "request.authenticated",
+      "valueType": "boolean",
+      "nullable": false,
+      "choices": [
+        {
+          "value": true,
+          "label": "True"
+        },
+        {
+          "value": false,
+          "label": "False"
+        }
+      ],
+      "source": "request_context",
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "variable:org-role",
+      "label": "Organization role",
+      "bindingRef": "actor.organization.role",
+      "valueType": "string",
+      "nullable": true,
+      "choices": [
+        {
+          "value": "admin",
+          "label": "Admin"
+        },
+        {
+          "value": "member",
+          "label": "Member"
+        },
+        {
+          "value": null,
+          "label": "None"
+        }
+      ],
+      "source": "relationship_fact",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "variable:project-role",
+      "label": "Project role",
+      "bindingRef": "actor.project.role",
+      "valueType": "string",
+      "nullable": true,
+      "choices": [
+        {
+          "value": "editor",
+          "label": "Editor"
+        },
+        {
+          "value": "viewer",
+          "label": "Viewer"
+        },
+        {
+          "value": null,
+          "label": "None"
+        }
+      ],
+      "source": "relationship_fact",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "variable:visibility",
+      "label": "Project visibility",
+      "bindingRef": "target.project.visibility",
+      "valueType": "string",
+      "nullable": false,
+      "choices": [
+        {
+          "value": "organization",
+          "label": "Organization"
+        },
+        {
+          "value": "restricted",
+          "label": "Restricted"
+        }
+      ],
+      "source": "attribute",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "variable:state",
+      "label": "Document state before the action",
+      "bindingRef": "target.old.state",
+      "valueType": "string",
+      "nullable": false,
+      "choices": [
+        {
+          "value": "draft",
+          "label": "Draft"
+        },
+        {
+          "value": "published",
+          "label": "Published"
+        },
+        {
+          "value": "archived",
+          "label": "Archived"
+        }
+      ],
+      "source": "attribute",
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "variable:share",
+      "label": "Direct share permission",
+      "bindingRef": "actor.target.share.permission",
+      "valueType": "string",
+      "nullable": true,
+      "choices": [
+        {
+          "value": "editor",
+          "label": "Editor"
+        },
+        {
+          "value": "viewer",
+          "label": "Viewer"
+        },
+        {
+          "value": null,
+          "label": "None"
+        }
+      ],
+      "source": "relationship_fact",
+      "claimIds": [
+        "claim:structure"
+      ]
+    },
+    {
+      "id": "variable:client-ready",
+      "label": "Other client authorization checks satisfied",
+      "bindingRef": "request.clientAuthorizationPrerequisites",
+      "valueType": "boolean",
+      "nullable": false,
+      "choices": [
+        {
+          "value": true,
+          "label": "True"
+        },
+        {
+          "value": false,
+          "label": "False"
+        }
+      ],
+      "source": "external_fact",
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "id": "condition:authenticated",
+      "kind": "compare",
+      "variableId": "variable:authenticated",
+      "operator": "eq",
+      "values": [
+        true
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:live-member",
+      "kind": "compare",
+      "variableId": "variable:org-role",
+      "operator": "ne",
+      "values": [
+        null
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:org-admin",
+      "kind": "compare",
+      "variableId": "variable:org-role",
+      "operator": "eq",
+      "values": [
+        "admin"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:project-editor",
+      "kind": "compare",
+      "variableId": "variable:project-role",
+      "operator": "eq",
+      "values": [
+        "editor"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:project-viewer",
+      "kind": "compare",
+      "variableId": "variable:project-role",
+      "operator": "eq",
+      "values": [
+        "viewer"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:project-member",
+      "kind": "compare",
+      "variableId": "variable:project-role",
+      "operator": "ne",
+      "values": [
+        null
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:org-wide",
+      "kind": "compare",
+      "variableId": "variable:visibility",
+      "operator": "eq",
+      "values": [
+        "organization"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:published-or-archived",
+      "kind": "compare",
+      "variableId": "variable:state",
+      "operator": "in",
+      "values": [
+        "published",
+        "archived"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:not-archived",
+      "kind": "compare",
+      "variableId": "variable:state",
+      "operator": "ne",
+      "values": [
+        "archived"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:has-share",
+      "kind": "compare",
+      "variableId": "variable:share",
+      "operator": "ne",
+      "values": [
+        null
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:editor-share",
+      "kind": "compare",
+      "variableId": "variable:share",
+      "operator": "eq",
+      "values": [
+        "editor"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:client-ready",
+      "kind": "compare",
+      "variableId": "variable:client-ready",
+      "operator": "eq",
+      "values": [
+        true
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "condition:common",
+      "kind": "all",
+      "conditionIds": [
+        "condition:authenticated",
+        "condition:live-member",
+        "condition:client-ready"
+      ],
+      "claimIds": [
+        "claim:read",
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "condition:project-readable",
+      "kind": "any",
+      "conditionIds": [
+        "condition:org-admin",
+        "condition:org-wide",
+        "condition:project-member"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:published-project",
+      "kind": "all",
+      "conditionIds": [
+        "condition:published-or-archived",
+        "condition:project-readable"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:read-grants",
+      "kind": "any",
+      "conditionIds": [
+        "condition:org-admin",
+        "condition:project-editor",
+        "condition:has-share",
+        "condition:published-project"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:read",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:read-grants"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:edit-grants",
+      "kind": "any",
+      "conditionIds": [
+        "condition:org-admin",
+        "condition:project-editor",
+        "condition:editor-share"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:edit",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:not-archived",
+        "condition:edit-grants"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:read-project-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:published-or-archived",
+        "condition:project-member"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:read-share-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:has-share"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:read-admin-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:org-admin"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:read-editor-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:project-editor"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:read-org-wide-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:published-or-archived",
+        "condition:org-wide"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "condition:edit-share-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:not-archived",
+        "condition:editor-share"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:edit-admin-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:not-archived",
+        "condition:org-admin"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:edit-project-path",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:not-archived",
+        "condition:project-editor"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "condition:intended-viewer-edit",
+      "kind": "all",
+      "conditionIds": [
+        "condition:common",
+        "condition:project-viewer",
+        "condition:not-archived",
+        "condition:editor-share"
+      ],
+      "claimIds": [
+        "claim:intent-edit",
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule:read",
+      "label": "Read document through client policies",
+      "basis": "implemented",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "actionId": "action:read-document",
+      "eligibilityConditionId": "condition:read",
+      "implementationBindings": [
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_read_document.sql",
+          "mechanism": "helper",
+          "phase": "visibility"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/policies/documents.sql",
+          "mechanism": "policy",
+          "phase": "visibility"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/policies/documents.sql",
+          "mechanism": "grant",
+          "phase": "invocation"
+        }
+      ],
+      "coverage": "partial",
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "rule:edit",
+      "label": "Edit document through client policies",
+      "basis": "implemented",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "actionId": "action:edit-document",
+      "eligibilityConditionId": "condition:edit",
+      "implementationBindings": [
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/private/functions/can_edit_document.sql",
+          "mechanism": "helper",
+          "phase": "old_row"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/policies/documents.sql",
+          "mechanism": "policy",
+          "phase": "old_row"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/policies/documents.sql",
+          "mechanism": "policy",
+          "phase": "new_row"
+        },
+        {
+          "sourceId": "repo:saas-app/supabase/schemas/public/policies/documents.sql",
+          "mechanism": "grant",
+          "phase": "column"
+        }
+      ],
+      "coverage": "partial",
+      "claimIds": [
+        "claim:edit",
+        "claim:update-mechanics"
+      ]
+    },
+    {
+      "id": "rule:intended-edit",
+      "label": "Intended editor-share access for a project viewer",
+      "basis": "intended",
+      "actorSelectorId": "selector:project-viewer",
+      "targetSelectorId": "selector:document",
+      "actionId": "action:edit-document",
+      "eligibilityConditionId": "condition:intended-viewer-edit",
+      "implementationBindings": [],
+      "coverage": "partial",
+      "claimIds": [
+        "claim:intent-edit",
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "accessPaths": [
+    {
+      "id": "path:read-project",
+      "label": "Project membership on published or archived content",
+      "ruleId": "rule:read",
+      "eligibilityConditionId": "condition:read-project-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member",
+        "relationship:project-member"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "path:read-share",
+      "label": "Direct document share",
+      "ruleId": "rule:read",
+      "eligibilityConditionId": "condition:read-share-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member",
+        "relationship:document-share"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "path:read-admin",
+      "label": "Organization administration",
+      "ruleId": "rule:read",
+      "eligibilityConditionId": "condition:read-admin-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "path:read-editor",
+      "label": "Project editor",
+      "ruleId": "rule:read",
+      "eligibilityConditionId": "condition:read-editor-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member",
+        "relationship:project-member"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "path:read-org-wide",
+      "label": "Organization-wide published or archived content",
+      "ruleId": "rule:read",
+      "eligibilityConditionId": "condition:read-org-wide-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member",
+        "relationship:project-document"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:read"
+      ]
+    },
+    {
+      "id": "path:edit-share",
+      "label": "Editor share on non-archived content",
+      "ruleId": "rule:edit",
+      "eligibilityConditionId": "condition:edit-share-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member",
+        "relationship:document-share"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "path:edit-admin",
+      "label": "Organization admin on non-archived content",
+      "ruleId": "rule:edit",
+      "eligibilityConditionId": "condition:edit-admin-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    },
+    {
+      "id": "path:edit-project",
+      "label": "Project editor on non-archived content",
+      "ruleId": "rule:edit",
+      "eligibilityConditionId": "condition:edit-project-path",
+      "relationshipTypeIds": [
+        "relationship:organization-member",
+        "relationship:project-member"
+      ],
+      "selectorIds": [
+        "selector:actor",
+        "selector:document"
+      ],
+      "claimIds": [
+        "claim:edit"
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario:published-viewer-share",
+      "label": "Published, viewer share",
+      "kind": "symbolic",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "facts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:state",
+          "value": "published",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:share",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "scenario:published-share-removed",
+      "label": "Published, share removed",
+      "kind": "symbolic",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "facts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:state",
+          "value": "published",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:share",
+          "value": null,
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "scenario:draft-viewer-share",
+      "label": "Draft, viewer share",
+      "kind": "symbolic",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "facts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:state",
+          "value": "draft",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:share",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "scenario:draft-share-removed",
+      "label": "Draft, share removed",
+      "kind": "symbolic",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "facts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:state",
+          "value": "draft",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:share",
+          "value": null,
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "scenario:draft-editor-share",
+      "label": "Draft, editor share",
+      "kind": "symbolic",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "facts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:state",
+          "value": "draft",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:share",
+          "value": "editor",
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "scenario:archived-editor-share",
+      "label": "Archived, editor share",
+      "kind": "symbolic",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "facts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:state",
+          "value": "archived",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:share",
+          "value": "editor",
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "scenarioSpaces": [
+    {
+      "id": "space:viewer-share-state",
+      "label": "Project viewer: share and lifecycle variations",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "fixedFacts": [
+        {
+          "variableId": "variable:authenticated",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:org-role",
+          "value": "member",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:project-role",
+          "value": "viewer",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:visibility",
+          "value": "restricted",
+          "basis": "assumed",
+          "evidenceRefs": []
+        },
+        {
+          "variableId": "variable:client-ready",
+          "value": true,
+          "basis": "assumed",
+          "evidenceRefs": []
+        }
+      ],
+      "varyingVariableIds": [
+        "variable:state",
+        "variable:share"
+      ],
+      "scenarioIds": [
+        "scenario:published-viewer-share",
+        "scenario:published-share-removed",
+        "scenario:draft-viewer-share",
+        "scenario:draft-share-removed",
+        "scenario:draft-editor-share",
+        "scenario:archived-editor-share"
+      ],
+      "coverage": "representative",
+      "boundary": "Symbolic organization member and project viewer in a restricted project. Client prerequisites are assumed satisfied. Six listed cases; not all possible application states.",
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "accessPatterns": [
+    {
+      "id": "pattern:read",
+      "label": "Read documents",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "actionId": "action:read-document",
+      "implementedRuleIds": [
+        "rule:read"
+      ],
+      "intendedRuleIds": [],
+      "pathIds": [
+        "path:read-project",
+        "path:read-share",
+        "path:read-admin",
+        "path:read-editor",
+        "path:read-org-wide"
+      ],
+      "scenarioSpaceId": "space:viewer-share-state",
+      "classification": "conditional",
+      "completeness": "partial",
+      "currentEvaluationId": null,
+      "evaluations": [
+        {
+          "id": "evaluation:read/published-viewer-share",
+          "scenarioId": "scenario:published-viewer-share",
+          "implemented": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:read-project",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-share",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-editor",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-org-wide",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:read",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": null
+        },
+        {
+          "id": "evaluation:read/published-share-removed",
+          "scenarioId": "scenario:published-share-removed",
+          "implemented": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:read-project",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-editor",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-org-wide",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:read",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": null
+        },
+        {
+          "id": "evaluation:read/draft-viewer-share",
+          "scenarioId": "scenario:draft-viewer-share",
+          "implemented": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:read-project",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-share",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-editor",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-org-wide",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:read",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": null
+        },
+        {
+          "id": "evaluation:read/draft-share-removed",
+          "scenarioId": "scenario:draft-share-removed",
+          "implemented": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:read-project",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-editor",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-org-wide",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:read",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": null
+        },
+        {
+          "id": "evaluation:read/draft-editor-share",
+          "scenarioId": "scenario:draft-editor-share",
+          "implemented": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:read-project",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-share",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-editor",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-org-wide",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:read",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": null
+        },
+        {
+          "id": "evaluation:read/archived-editor-share",
+          "scenarioId": "scenario:archived-editor-share",
+          "implemented": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:read-project",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-share",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:read-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-editor",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:read-org-wide",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:read",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": null
+        }
+      ],
+      "sidebarSummary": "Independent read paths can survive share revocation; drafts still require a share for this project viewer.",
+      "claimIds": [
+        "claim:read",
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "pattern:edit",
+      "label": "Edit documents",
+      "actorSelectorId": "selector:actor",
+      "targetSelectorId": "selector:document",
+      "actionId": "action:edit-document",
+      "implementedRuleIds": [
+        "rule:edit"
+      ],
+      "intendedRuleIds": [
+        "rule:intended-edit"
+      ],
+      "pathIds": [
+        "path:edit-share",
+        "path:edit-admin",
+        "path:edit-project"
+      ],
+      "scenarioSpaceId": "space:viewer-share-state",
+      "classification": "conditional",
+      "completeness": "partial",
+      "currentEvaluationId": null,
+      "evaluations": [
+        {
+          "id": "evaluation:edit/published-viewer-share",
+          "scenarioId": "scenario:published-viewer-share",
+          "implemented": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:edit-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-project",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:edit",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:intent-edit",
+              "claim:scenario-boundary"
+            ]
+          }
+        },
+        {
+          "id": "evaluation:edit/published-share-removed",
+          "scenarioId": "scenario:published-share-removed",
+          "implemented": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:edit-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-project",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:edit",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:intent-edit",
+              "claim:scenario-boundary"
+            ]
+          }
+        },
+        {
+          "id": "evaluation:edit/draft-viewer-share",
+          "scenarioId": "scenario:draft-viewer-share",
+          "implemented": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:edit-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-project",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:edit",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:intent-edit",
+              "claim:scenario-boundary"
+            ]
+          }
+        },
+        {
+          "id": "evaluation:edit/draft-share-removed",
+          "scenarioId": "scenario:draft-share-removed",
+          "implemented": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:edit-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-project",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:edit",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:intent-edit",
+              "claim:scenario-boundary"
+            ]
+          }
+        },
+        {
+          "id": "evaluation:edit/draft-editor-share",
+          "scenarioId": "scenario:draft-editor-share",
+          "implemented": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:edit-share",
+                "state": "satisfied"
+              },
+              {
+                "pathId": "path:edit-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-project",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:edit",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": {
+            "outcome": "allowed",
+            "method": "symbolic_derivation",
+            "pathStates": [],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:intent-edit",
+              "claim:scenario-boundary"
+            ]
+          }
+        },
+        {
+          "id": "evaluation:edit/archived-editor-share",
+          "scenarioId": "scenario:archived-editor-share",
+          "implemented": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [
+              {
+                "pathId": "path:edit-share",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-admin",
+                "state": "unsatisfied"
+              },
+              {
+                "pathId": "path:edit-project",
+                "state": "unsatisfied"
+              }
+            ],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:edit",
+              "claim:scenario-boundary"
+            ]
+          },
+          "intended": {
+            "outcome": "denied",
+            "method": "symbolic_derivation",
+            "pathStates": [],
+            "unresolvedConditionIds": [],
+            "claimIds": [
+              "claim:intent-edit",
+              "claim:scenario-boundary"
+            ]
+          }
+        }
+      ],
+      "sidebarSummary": "An editor share permits editing only on non-archived documents. These are assumed symbolic cases, not observed live access.",
+      "claimIds": [
+        "claim:edit",
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "facets": [
+    {
+      "id": "facet:relationships",
+      "label": "Show relationships",
+      "dimension": "relationship",
+      "effect": "filter",
+      "multiple": true,
+      "contextBindings": [
+        {
+          "name": "organization",
+          "entityTypeId": "entity:organization"
+        },
+        {
+          "name": "project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "options": [
+        {
+          "id": "option:memberships",
+          "label": "Memberships",
+          "refs": [
+            {
+              "kind": "relationship_type",
+              "id": "relationship:organization-member"
+            },
+            {
+              "kind": "relationship_type",
+              "id": "relationship:project-member"
+            }
+          ]
+        },
+        {
+          "id": "option:shares",
+          "label": "Document shares",
+          "refs": [
+            {
+              "kind": "relationship_type",
+              "id": "relationship:document-share"
+            }
+          ]
+        }
+      ],
+      "defaultOptionIds": [],
+      "claimIds": [
+        "claim:navigation"
+      ]
+    },
+    {
+      "id": "facet:actors",
+      "label": "Actor perspective",
+      "dimension": "actor",
+      "effect": "perspective",
+      "multiple": false,
+      "contextBindings": [
+        {
+          "name": "organization",
+          "entityTypeId": "entity:organization"
+        },
+        {
+          "name": "project",
+          "entityTypeId": "entity:project"
+        }
+      ],
+      "options": [
+        {
+          "id": "option:actor",
+          "label": "User in context",
+          "refs": [
+            {
+              "kind": "selector",
+              "id": "selector:actor"
+            }
+          ]
+        },
+        {
+          "id": "option:project-viewers",
+          "label": "Project viewers",
+          "refs": [
+            {
+              "kind": "selector",
+              "id": "selector:project-viewer"
+            }
+          ]
+        }
+      ],
+      "defaultOptionIds": [
+        "option:actor"
+      ],
+      "claimIds": [
+        "claim:navigation"
+      ]
+    },
+    {
+      "id": "facet:actions",
+      "label": "Actions",
+      "dimension": "action",
+      "effect": "filter",
+      "multiple": true,
+      "contextBindings": [],
+      "options": [
+        {
+          "id": "option:read-document",
+          "label": "Read",
+          "refs": [
+            {
+              "kind": "action",
+              "id": "action:read-document"
+            }
+          ]
+        },
+        {
+          "id": "option:edit-document",
+          "label": "Edit",
+          "refs": [
+            {
+              "kind": "action",
+              "id": "action:edit-document"
+            }
+          ]
+        }
+      ],
+      "defaultOptionIds": [
+        "option:read-document"
+      ],
+      "claimIds": [
+        "claim:navigation"
+      ]
+    }
+  ],
+  "scenarioControls": [
+    {
+      "id": "control:share",
+      "label": "Direct share permission",
+      "effect": "simulate",
+      "variableId": "variable:share",
+      "scenarioSpaceIds": [
+        "space:viewer-share-state"
+      ],
+      "options": [
+        {
+          "value": "editor",
+          "label": "Editor"
+        },
+        {
+          "value": "viewer",
+          "label": "Viewer"
+        },
+        {
+          "value": null,
+          "label": "None"
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    },
+    {
+      "id": "control:state",
+      "label": "Document lifecycle",
+      "effect": "simulate",
+      "variableId": "variable:state",
+      "scenarioSpaceIds": [
+        "space:viewer-share-state"
+      ],
+      "options": [
+        {
+          "value": "draft",
+          "label": "Draft"
+        },
+        {
+          "value": "published",
+          "label": "Published"
+        },
+        {
+          "value": "archived",
+          "label": "Archived"
+        }
+      ],
+      "claimIds": [
+        "claim:scenario-boundary"
+      ]
+    }
+  ],
+  "presentation": {
+    "groups": [
+      {
+        "id": "group:organizations",
+        "label": "Organizations",
+        "selectorIds": [
+          "selector:organizations"
+        ],
+        "relationshipTypeIds": [
+          "relationship:organization-project"
+        ],
+        "claimIds": [
+          "claim:navigation"
+        ]
+      },
+      {
+        "id": "group:project-documents",
+        "label": "Documents by project",
+        "selectorIds": [
+          "selector:projects",
+          "selector:document"
+        ],
+        "relationshipTypeIds": [
+          "relationship:project-document"
+        ],
+        "claimIds": [
+          "claim:navigation"
+        ]
+      }
+    ],
+    "perspectives": [
+      {
+        "id": "perspective:actor",
+        "label": "What can this user access?",
+        "kind": "actor",
+        "anchorSelectorId": "selector:actor"
+      },
+      {
+        "id": "perspective:resource",
+        "label": "Who can access this document?",
+        "kind": "resource",
+        "anchorSelectorId": "selector:document"
+      }
+    ],
+    "defaultPerspectiveId": "perspective:actor",
+    "overviewGroupIds": [
+      "group:organizations",
+      "group:project-documents"
+    ],
+    "overviewPatternIds": [
+      "pattern:read",
+      "pattern:edit"
+    ],
+    "defaultActionIds": [
+      "action:read-document"
+    ],
+    "defaultScenarioId": null
+  },
+  "findings": [
+    {
+      "id": "finding:live-context",
+      "label": "Live access is not established",
+      "kind": "missing_context",
+      "subjectRefs": [
+        {
+          "kind": "pattern",
+          "id": "pattern:read"
+        },
+        {
+          "kind": "pattern",
+          "id": "pattern:edit"
+        }
+      ],
+      "explanation": "A schema-only response cannot identify actual users or resource rows. The renderer must label this model symbolic and show no current allowed/denied decision until a scenario or observed context is selected.",
+      "claimIds": [
+        "claim:missing-live-context"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1852 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AuthZcope authorization model v1 draft",
+  "description": "Semantic authorization model for evidence-backed analysis, visualization and navigation. Runtime integration additionally validates references, provenance and symbolic consistency.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "modelId",
+    "snapshotRevision",
+    "contextRevision",
+    "materialization",
+    "coverage",
+    "claims",
+    "entityTypes",
+    "relationshipTypes",
+    "actions",
+    "selectors",
+    "variables",
+    "conditions",
+    "rules",
+    "accessPaths",
+    "scenarios",
+    "scenarioSpaces",
+    "accessPatterns",
+    "facets",
+    "scenarioControls",
+    "presentation",
+    "findings"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "authzcope.authorization-model.v1-draft"
+    },
+    "modelId": {
+      "$ref": "#/definitions/id"
+    },
+    "snapshotRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contextRevision": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "materialization": {
+      "type": "string",
+      "enum": [
+        "types",
+        "symbolic",
+        "observed"
+      ]
+    },
+    "coverage": {
+      "$ref": "#/definitions/coverage"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/claim"
+      },
+      "minItems": 1
+    },
+    "entityTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entityType"
+      },
+      "minItems": 1
+    },
+    "relationshipTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/relationshipType"
+      },
+      "minItems": 0
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/action"
+      },
+      "minItems": 1
+    },
+    "selectors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/selector"
+      },
+      "minItems": 1
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/variable"
+      },
+      "minItems": 0
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/condition"
+      },
+      "minItems": 0
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/rule"
+      },
+      "minItems": 0
+    },
+    "accessPaths": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/path"
+      },
+      "minItems": 0
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/scenario"
+      },
+      "minItems": 0
+    },
+    "scenarioSpaces": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/scenarioSpace"
+      },
+      "minItems": 0
+    },
+    "accessPatterns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/pattern"
+      },
+      "minItems": 0
+    },
+    "facets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/facet"
+      },
+      "minItems": 0
+    },
+    "scenarioControls": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/scenarioControl"
+      },
+      "minItems": 0
+    },
+    "presentation": {
+      "$ref": "#/definitions/presentation"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/finding"
+      },
+      "minItems": 0
+    }
+  },
+  "definitions": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9._/-]+$"
+    },
+    "scalar": {
+      "type": [
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "pointer"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pointer": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "statement",
+        "basis",
+        "support",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "implemented",
+            "intended",
+            "assumption",
+            "test_observed"
+          ]
+        },
+        "support": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "inferred",
+            "unresolved",
+            "conflicting"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evidenceRef"
+          },
+          "minItems": 0
+        }
+      }
+    },
+    "attribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "key",
+        "valueType",
+        "sourceIds",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valueType": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "reference",
+            "json"
+          ]
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "entityType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "pluralLabel",
+        "capabilities",
+        "sourceIds",
+        "attributes",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pluralLabel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "actor",
+              "resource",
+              "context",
+              "relationship_record"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/attribute"
+          },
+          "minItems": 0
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label",
+        "entityTypeId"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entityTypeId": {
+          "$ref": "#/definitions/id"
+        }
+      }
+    },
+    "relationshipType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "participants",
+        "recordEntityTypeId",
+        "sourceIds",
+        "visualPurpose",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/participant"
+          },
+          "minItems": 2
+        },
+        "recordEntityTypeId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "visualPurpose": {
+          "type": "string",
+          "enum": [
+            "grouping",
+            "access",
+            "context"
+          ]
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "crud",
+        "targetEntityTypeId",
+        "targetLevel",
+        "createsEntityTypeId",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "crud": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "create",
+                "read",
+                "update",
+                "delete"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "targetEntityTypeId": {
+          "$ref": "#/definitions/id"
+        },
+        "targetLevel": {
+          "type": "string",
+          "enum": [
+            "instance",
+            "collection"
+          ]
+        },
+        "createsEntityTypeId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "entityTypeId"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entityTypeId": {
+          "$ref": "#/definitions/id"
+        }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "entityTypeId",
+        "kind",
+        "contextBindings",
+        "whereConditionId",
+        "instanceEvidenceRef",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entityTypeId": {
+          "$ref": "#/definitions/id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "type",
+            "symbolic",
+            "observed_instance"
+          ]
+        },
+        "contextBindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/binding"
+          },
+          "minItems": 0
+        },
+        "whereConditionId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "instanceEvidenceRef": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/evidenceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "variable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "bindingRef",
+        "valueType",
+        "nullable",
+        "choices",
+        "source",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bindingRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valueType": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "label"
+            ],
+            "properties": {
+              "value": {
+                "$ref": "#/definitions/scalar"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "minItems": 0
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "attribute",
+            "relationship_fact",
+            "request_context",
+            "external_fact"
+          ]
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "condition": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "value",
+            "claimIds"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "kind": {
+              "const": "constant"
+            },
+            "value": {
+              "type": "boolean"
+            },
+            "claimIds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "conditionIds",
+            "claimIds"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "all",
+                "any"
+              ]
+            },
+            "conditionIds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "claimIds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "conditionId",
+            "claimIds"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "kind": {
+              "const": "not"
+            },
+            "conditionId": {
+              "$ref": "#/definitions/id"
+            },
+            "claimIds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "variableId",
+            "operator",
+            "values",
+            "claimIds"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "kind": {
+              "const": "compare"
+            },
+            "variableId": {
+              "$ref": "#/definitions/id"
+            },
+            "operator": {
+              "type": "string",
+              "enum": [
+                "eq",
+                "ne",
+                "in",
+                "not_in"
+              ]
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/scalar"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "claimIds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "summary",
+            "bindingRefs",
+            "claimIds"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "kind": {
+              "const": "opaque"
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "bindingRefs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "claimIds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        }
+      ]
+    },
+    "implementationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "mechanism",
+        "phase"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mechanism": {
+          "type": "string",
+          "enum": [
+            "grant",
+            "policy",
+            "helper",
+            "view",
+            "trigger",
+            "application",
+            "external"
+          ]
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "invocation",
+            "visibility",
+            "old_row",
+            "new_row",
+            "column",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "basis",
+        "actorSelectorId",
+        "targetSelectorId",
+        "actionId",
+        "eligibilityConditionId",
+        "implementationBindings",
+        "coverage",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "implemented",
+            "intended"
+          ]
+        },
+        "actorSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "targetSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "actionId": {
+          "$ref": "#/definitions/id"
+        },
+        "eligibilityConditionId": {
+          "$ref": "#/definitions/id"
+        },
+        "implementationBindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/implementationBinding"
+          },
+          "minItems": 0
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "ruleId",
+        "eligibilityConditionId",
+        "relationshipTypeIds",
+        "selectorIds",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ruleId": {
+          "$ref": "#/definitions/id"
+        },
+        "eligibilityConditionId": {
+          "$ref": "#/definitions/id"
+        },
+        "relationshipTypeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "selectorIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "scenarioFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variableId",
+        "value",
+        "basis",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "variableId": {
+          "$ref": "#/definitions/id"
+        },
+        "value": {
+          "$ref": "#/definitions/scalar"
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "observed",
+            "assumed"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evidenceRef"
+          },
+          "minItems": 0
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "actorSelectorId",
+        "targetSelectorId",
+        "facts",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "symbolic",
+            "observed",
+            "hypothetical"
+          ]
+        },
+        "actorSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "targetSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/scenarioFact"
+          },
+          "minItems": 0
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "scenarioSpace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "actorSelectorId",
+        "targetSelectorId",
+        "fixedFacts",
+        "varyingVariableIds",
+        "scenarioIds",
+        "coverage",
+        "boundary",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "targetSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "fixedFacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/scenarioFact"
+          },
+          "minItems": 0
+        },
+        "varyingVariableIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "scenarioIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "exhaustive",
+            "representative",
+            "unknown"
+          ]
+        },
+        "boundary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "pathState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pathId",
+        "state"
+      ],
+      "properties": {
+        "pathId": {
+          "$ref": "#/definitions/id"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "satisfied",
+            "unsatisfied",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "method",
+        "pathStates",
+        "unresolvedConditionIds",
+        "claimIds"
+      ],
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown"
+          ]
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "symbolic_derivation",
+            "model_inference",
+            "runtime_observation",
+            "test_evidence"
+          ]
+        },
+        "pathStates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pathState"
+          },
+          "minItems": 0
+        },
+        "unresolvedConditionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "scenarioId",
+        "implemented",
+        "intended"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "scenarioId": {
+          "$ref": "#/definitions/id"
+        },
+        "implemented": {
+          "$ref": "#/definitions/decision"
+        },
+        "intended": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/decision"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "pattern": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "actorSelectorId",
+        "targetSelectorId",
+        "actionId",
+        "implementedRuleIds",
+        "intendedRuleIds",
+        "pathIds",
+        "scenarioSpaceId",
+        "classification",
+        "completeness",
+        "currentEvaluationId",
+        "evaluations",
+        "sidebarSummary",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "targetSelectorId": {
+          "$ref": "#/definitions/id"
+        },
+        "actionId": {
+          "$ref": "#/definitions/id"
+        },
+        "implementedRuleIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "intendedRuleIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "pathIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "scenarioSpaceId": {
+          "$ref": "#/definitions/id"
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "always",
+            "conditional",
+            "never",
+            "unknown"
+          ]
+        },
+        "completeness": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "currentEvaluationId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evaluations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evaluation"
+          },
+          "minItems": 0
+        },
+        "sidebarSummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "targetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "entity_type",
+            "relationship_type",
+            "action",
+            "selector",
+            "variable",
+            "condition",
+            "rule",
+            "path",
+            "pattern",
+            "scenario",
+            "scenario_space",
+            "group"
+          ]
+        },
+        "id": {
+          "$ref": "#/definitions/id"
+        }
+      }
+    },
+    "facetOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "refs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/targetRef"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "facet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "dimension",
+        "effect",
+        "multiple",
+        "contextBindings",
+        "options",
+        "defaultOptionIds",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimension": {
+          "type": "string",
+          "enum": [
+            "actor",
+            "action",
+            "scope",
+            "relationship",
+            "state",
+            "access"
+          ]
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "filter",
+            "perspective"
+          ]
+        },
+        "multiple": {
+          "type": "boolean"
+        },
+        "contextBindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/binding"
+          },
+          "minItems": 0
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/facetOption"
+          },
+          "minItems": 1
+        },
+        "defaultOptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "scenarioControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "effect",
+        "variableId",
+        "scenarioSpaceIds",
+        "options",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effect": {
+          "const": "simulate"
+        },
+        "variableId": {
+          "$ref": "#/definitions/id"
+        },
+        "scenarioSpaceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "label"
+            ],
+            "properties": {
+              "value": {
+                "$ref": "#/definitions/scalar"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "selectorIds",
+        "relationshipTypeIds",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selectorIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "relationshipTypeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "perspective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "anchorSelectorId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "actor",
+            "resource"
+          ]
+        },
+        "anchorSelectorId": {
+          "$ref": "#/definitions/id"
+        }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "groups",
+        "perspectives",
+        "defaultPerspectiveId",
+        "overviewGroupIds",
+        "overviewPatternIds",
+        "defaultActionIds",
+        "defaultScenarioId"
+      ],
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/group"
+          },
+          "minItems": 0
+        },
+        "perspectives": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/perspective"
+          },
+          "minItems": 1
+        },
+        "defaultPerspectiveId": {
+          "$ref": "#/definitions/id"
+        },
+        "overviewGroupIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "overviewPatternIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "defaultActionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "defaultScenarioId": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "subjectRefs",
+        "explanation",
+        "claimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "intent_mismatch",
+            "uncertainty",
+            "missing_context"
+          ]
+        },
+        "subjectRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/targetRef"
+          },
+          "minItems": 1
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analyzedObjectIds",
+        "externalDependencyIds",
+        "exclusions",
+        "missingInputs",
+        "limits"
+      ],
+      "properties": {
+        "analyzedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "externalDependencyIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sourceId",
+              "reason"
+            ],
+            "properties": {
+              "sourceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "minItems": 0
+        },
+        "missingInputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "limits": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

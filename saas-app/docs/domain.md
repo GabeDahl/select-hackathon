@@ -1,6 +1,6 @@
 # Workspace document application
 
-This is a small SaaS application and an authorization example for Authzcope.
+This is a small SaaS application and an authorization example for AuthZcope.
 Its concepts have business meaning independent of their SQL implementation.
 
 An **organization** is a tenant. A person can belong to several organizations

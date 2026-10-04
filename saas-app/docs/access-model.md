@@ -1,7 +1,7 @@
 # Intended authorization model
 
 This document describes intended behavior. SQL files describe implementation;
-tests verify representative allow/deny cases. Authzcope should compare these
+tests verify representative allow/deny cases. AuthZcope should compare these
 sources rather than infer intended behavior solely from the existing policies.
 
 ## Access rules
@@ -51,7 +51,7 @@ the old row's UPDATE eligibility from the resulting row's WITH CHECK conditions.
 - `public.create_organization(p_name)` is an invoker wrapper for a private, authenticated bootstrap function, creating the organization and first admin atomically.
 - Service-role/database-owner operations are trusted administrative operations and bypass the client rules. Do not use them as evidence that a client is authorized.
 
-## Questions for Authzcope
+## Questions for AuthZcope
 
 - Why can Maya edit Launch draft despite having only a project viewer role?
 - Can Quinn see the project or neighboring documents through a direct share?

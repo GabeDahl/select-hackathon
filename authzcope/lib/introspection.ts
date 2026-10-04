@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Client, type ClientConfig } from "pg";
+import { collectDatabaseSnapshot } from "./catalog.ts";
 
 import type {
   ConfigurationStatus,
@@ -63,10 +64,6 @@ export function resolveIntrospectionInput(input: unknown) {
   const connectionString = environmentUrl || (
     typeof values.connectionString === "string" ? values.connectionString.trim() : ""
   );
-  const aiModel = typeof values.aiModel === "string" ? values.aiModel.trim() : "";
-  const aiApiKey = process.env.AI_API_KEY?.trim() || (
-    typeof values.aiApiKey === "string" ? values.aiApiKey.trim() : ""
-  );
   const fieldErrors: Partial<Record<keyof IntrospectionInput, string>> = {};
   const database = connectionString.length <= 8_192 ? connectionConfig(connectionString) : null;
 
@@ -77,12 +74,6 @@ export function resolveIntrospectionInput(input: unknown) {
       ? "The server database configuration is invalid."
       : "Use a postgres:// or postgresql:// URL with a host, username, and database. The supported URL option is sslmode=disable, require, or verify-full.";
   }
-  if (!aiModel || aiModel.length > 200) {
-    fieldErrors.aiModel = "Enter a model identifier of up to 200 characters.";
-  }
-  if (!aiApiKey || aiApiKey.length > 8_192) {
-    fieldErrors.aiApiKey = "Provide an AI API key, or configure one on the server.";
-  }
   if (Object.keys(fieldErrors).length || !database) {
     return { ok: false as const, message: "Check the connection settings.", fieldErrors };
   }
@@ -91,7 +82,6 @@ export function resolveIntrospectionInput(input: unknown) {
     ok: true as const,
     database,
     databaseSource: environmentUrl ? "environment" as const : "input" as const,
-    ai: { model: aiModel, apiKey: aiApiKey },
   };
 }
 
@@ -121,6 +111,7 @@ export async function runIntrospection(input: unknown): Promise<IntrospectionRes
   if (!settings.ok) return settings;
 
   let client: Client | undefined;
+  let connected = false;
   try {
     client = new Client(settings.database);
     // A disconnect between queries must not become an unhandled process error.
@@ -128,18 +119,20 @@ export async function runIntrospection(input: unknown): Promise<IntrospectionRes
     await client.connect();
     await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
     await client.query("SELECT 1");
-    // Catalog collection will go here. No application rows or AI requests yet.
+    connected = true;
+    const snapshot = await collectDatabaseSnapshot(client);
     await client.query("COMMIT");
 
     return {
       ok: true,
-      stage: "connection",
+      stage: "introspection",
       databaseSource: settings.databaseSource,
-      aiModel: settings.ai.model,
-      aiApiKeyConfigured: true,
+      snapshot,
     };
   } catch (error) {
-    return { ok: false, message: connectionError(error) };
+    return connected
+      ? { ok: false, databaseConnected: true, message: "Database connected, but schema introspection failed. Check catalog access and database size, then retry." }
+      : { ok: false, message: connectionError(error) };
   } finally {
     // Closing also rolls back any transaction interrupted by an error.
     await client?.end().catch(() => {});

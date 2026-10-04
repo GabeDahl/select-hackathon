@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 
 export function ScaffoldPage({
   title,
-  description,
   emptyTitle,
   emptyDescription,
   icon: Icon,
@@ -23,23 +22,22 @@ export function ScaffoldPage({
   nextLabel,
 }: {
   title: string;
-  description: string;
   emptyTitle: string;
-  emptyDescription: string;
+  emptyDescription?: string;
   icon: LucideIcon;
   nextHref: string;
   nextLabel: string;
 }) {
   return (
     <>
-      <PageHeader title={title} description={description} />
+      <PageHeader title={title} />
       <Empty className="min-h-80 border">
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <Icon aria-hidden="true" />
           </EmptyMedia>
           <EmptyTitle>{emptyTitle}</EmptyTitle>
-          <EmptyDescription>{emptyDescription}</EmptyDescription>
+          {emptyDescription ? <EmptyDescription>{emptyDescription}</EmptyDescription> : null}
         </EmptyHeader>
         <EmptyContent>
           <Link href={nextHref} className={cn(buttonVariants({ variant: "outline" }))}>

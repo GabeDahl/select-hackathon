@@ -14,8 +14,6 @@ const originalEnvironment = {
 };
 const input = {
   connectionString: "postgresql://reader:private-password@localhost:5432/example",
-  aiModel: "chosen-model",
-  aiApiKey: "private-api-key",
 };
 
 beforeEach(() => {
@@ -36,7 +34,6 @@ test("uses supplied credentials when environment settings are absent", () => {
   assert.equal(resolved.ok, true);
   assert.equal(resolved.databaseSource, "input");
   assert.equal(resolved.database.password, "private-password");
-  assert.equal(resolved.ai.apiKey, "private-api-key");
   assert.deepEqual(getConfigurationStatus(), {
     databaseConfigured: false,
     aiApiKeyConfigured: false,
@@ -51,7 +48,6 @@ test("environment secrets take precedence and only presence is exposed", () => {
   assert.equal(resolved.databaseSource, "environment");
   assert.equal(resolved.database.host, "database");
   assert.equal(resolved.database.password, "server-secret");
-  assert.equal(resolved.ai.apiKey, "server-ai-secret");
   assert.deepEqual(getConfigurationStatus(), {
     databaseConfigured: true,
     aiApiKeyConfigured: true,
@@ -60,7 +56,7 @@ test("environment secrets take precedence and only presence is exposed", () => {
 
 test("rejects missing and malformed runtime inputs before connecting", () => {
   assert.deepEqual(Object.keys(resolveIntrospectionInput(null).fieldErrors).sort(),
-    ["aiApiKey", "aiModel", "connectionString"]);
+    ["connectionString"]);
   for (const connectionString of [
     "https://reader:password@example.com/db",
     "postgres://localhost/db",
@@ -71,6 +67,13 @@ test("rejects missing and malformed runtime inputs before connecting", () => {
   ]) {
     assert.equal(resolveIntrospectionInput({ ...input, connectionString }).ok, false);
   }
+});
+
+test("database validation ignores absent or invalid AI settings", () => {
+  process.env.AI_API_KEY = "x".repeat(8193);
+  const resolved = resolveIntrospectionInput({ ...input, aiModel: null, aiApiKey: 123 });
+  assert.equal(resolved.ok, true);
+  assert.equal("ai" in resolved, false);
 });
 
 test("decodes credentials and enforces certificate verification for TLS", () => {
@@ -84,32 +87,57 @@ test("decodes credentials and enforces certificate verification for TLS", () => 
   assert.deepEqual(resolved.database.ssl, { rejectUnauthorized: true });
 });
 
-test("checks a read-only connection, closes it, and returns no secrets", async () => {
+test("collects metadata in a read-only transaction, closes it, and returns no credentials", async () => {
   const queries = [];
   mock.method(Client.prototype, "connect", async () => {});
-  mock.method(Client.prototype, "query", async (sql) => { queries.push(sql); });
+  mock.method(Client.prototype, "query", async (sql) => {
+    queries.push(sql);
+    return { rows: sql.includes("AS version_number") ? [{ version: "17.6", version_number: "170006" }] : [] };
+  });
   const end = mock.method(Client.prototype, "end", async () => {});
   const fetch = mock.method(globalThis, "fetch", async () => { throw new Error("Unexpected AI request"); });
   const result = await runIntrospection(input);
   assert.equal(result.ok, true);
-  assert.equal(result.stage, "connection");
-  assert.deepEqual(queries, [
-    "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY", "SELECT 1", "COMMIT",
-  ]);
+  assert.equal(result.stage, "introspection");
+  assert.equal(queries[0], "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+  assert.equal(queries.at(-1), "COMMIT");
+  assert.ok(queries.some((sql) => sql.includes("pg_catalog.pg_policy")));
+  assert.equal(result.snapshot.serverVersionNumber, 170006);
+  assert.equal(result.snapshot.formatVersion, 1);
+  assert.match(result.snapshot.revision, /^[a-f0-9]{64}$/);
   assert.equal(end.mock.callCount(), 1);
   assert.equal(fetch.mock.callCount(), 0);
-  assert.equal(JSON.stringify(result).includes(input.aiApiKey), false);
+  assert.equal("aiModel" in result, false);
+  assert.equal("aiApiKeyConfigured" in result, false);
   assert.equal(JSON.stringify(result).includes("private-password"), false);
 });
 
-test("redacts driver errors and closes failed connections", async () => {
-  mock.method(Client.prototype, "connect", async () => {
-    throw new Error(`Driver failure containing ${input.connectionString} ${input.aiApiKey}`);
+test("reports a connected database separately from a failed catalog import", async () => {
+  const queries = [];
+  mock.method(Client.prototype, "connect", async () => {});
+  mock.method(Client.prototype, "query", async (sql) => {
+    queries.push(sql);
+    if (sql.startsWith("SET LOCAL")) throw new Error(`sensitive catalog error ${input.connectionString}`);
+    return { rows: [] };
   });
   const end = mock.method(Client.prototype, "end", async () => {});
   const result = await runIntrospection(input);
   assert.equal(result.ok, false);
-  assert.equal(JSON.stringify(result).includes(input.aiApiKey), false);
+  assert.equal(result.databaseConnected, true);
+  assert.equal(queries.includes("COMMIT"), false);
+  assert.equal(JSON.stringify(result).includes("private-password"), false);
+  assert.equal(end.mock.callCount(), 1);
+});
+
+test("redacts driver errors and closes failed connections", async () => {
+  mock.method(Client.prototype, "connect", async () => {
+    throw new Error(`Driver failure containing ${input.connectionString}`);
+  });
+  const end = mock.method(Client.prototype, "end", async () => {});
+  const result = await runIntrospection(input);
+  assert.equal(result.ok, false);
+  assert.equal("aiModel" in result, false);
+  assert.equal("aiApiKeyConfigured" in result, false);
   assert.equal(JSON.stringify(result).includes(input.connectionString), false);
   assert.equal(end.mock.callCount(), 1);
 });
@@ -132,8 +160,7 @@ test("connects to a real Postgres database using input and environment fallback"
   const connectionString = process.env.AUTHZCOPE_TEST_DATABASE_URL;
   assert.equal((await runIntrospection({ ...input, connectionString })).ok, true);
   process.env.DATABASE_URL = connectionString;
-  process.env.AI_API_KEY = "test-key-not-sent-to-any-provider";
-  const result = await runIntrospection({ aiModel: "arbitrary-model" });
+  const result = await runIntrospection({});
   assert.equal(result.ok, true);
   assert.equal(result.databaseSource, "environment");
 });

@@ -9,12 +9,10 @@ export default function ContextPage() {
   return (
     <ScaffoldPage
       title="Domain context"
-      description="Give the analysis context about your application and its intended access rules."
       icon={BookOpenIcon}
-      emptyTitle="Your application’s meaning belongs here"
-      emptyDescription="Documentation, workflow descriptions, and intended permissions will help explain what the database rules mean. Context editing is not available yet."
+      emptyTitle="Context is managed in Analysis"
       nextHref="/analysis"
-      nextLabel="Explore analysis workspace"
+      nextLabel="Open analysis"
     />
   );
 }

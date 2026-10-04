@@ -7,7 +7,6 @@ import { appNavigation } from "@/lib/navigation";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
@@ -18,7 +17,7 @@ import {
 export function AppNavigation() {
   const pathname = usePathname();
 
-  function renderItem({ href, label, description, icon: Icon }: (typeof appNavigation)[number]) {
+  function renderItem({ href, label, icon: Icon }: (typeof appNavigation)[number]) {
     const active = href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
     return (
       <SidebarMenuItem key={href}>
@@ -27,7 +26,6 @@ export function AppNavigation() {
           size="rail"
           isActive={active}
           aria-current={active ? "page" : undefined}
-          title={description}
         >
           <Icon aria-hidden="true" />
           <span>{label}</span>
@@ -43,14 +41,11 @@ export function AppNavigation() {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="gap-2">
-                {appNavigation.filter(({ href }) => href !== "/connections").map(renderItem)}
+                {appNavigation.map(renderItem)}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>{appNavigation.filter(({ href }) => href === "/connections").map(renderItem)}</SidebarMenu>
-        </SidebarFooter>
       </nav>
     </Sidebar>
   );

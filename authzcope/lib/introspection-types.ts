@@ -1,7 +1,7 @@
+import type { DatabaseSnapshot } from "./catalog-types";
+
 export type IntrospectionInput = {
   connectionString?: string;
-  aiModel: string;
-  aiApiKey?: string;
 };
 
 export type ConfigurationStatus = {
@@ -12,13 +12,13 @@ export type ConfigurationStatus = {
 export type IntrospectionResult =
   | {
       ok: true;
-      stage: "connection";
+      stage: "introspection";
       databaseSource: "environment" | "input";
-      aiModel: string;
-      aiApiKeyConfigured: true;
+      snapshot: DatabaseSnapshot;
     }
   | {
       ok: false;
       message: string;
+      databaseConnected?: boolean;
       fieldErrors?: Partial<Record<keyof IntrospectionInput, string>>;
     };

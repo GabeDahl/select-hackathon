@@ -149,17 +149,7 @@
   }
 }
 
-/* Decorative stage only; navigation, tabs, controls, and drawers use shadcn. */
+/* WebGL stage; controls remain HTML overlays. */
 .model-space {
-  background-image: radial-gradient(ellipse at 45% 42%, #34434a55, transparent 65%);
-}
-
-.model-space-grid {
-  position: absolute;
-  inset: 22% -40% -65%;
-  pointer-events: none;
-  background-image: linear-gradient(#a3afb610 1px, transparent 1px), linear-gradient(90deg, #a3afb610 1px, transparent 1px);
-  background-size: 64px 64px;
-  transform: perspective(650px) rotateX(55deg) rotateZ(-20deg);
-  mask-image: radial-gradient(ellipse, black, transparent 68%);
+  background: var(--background);
 }
